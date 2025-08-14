@@ -1,0 +1,125 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class EmployeeApp {
+    private static final String URL = "jdbc:mysql://localhost:3306/employeedb";
+    private static final String USER = "root";
+    private static final String PASSWORD = "shameD";
+
+    private Connection conn;
+    private Scanner sc;
+
+    public EmployeeApp() {
+        sc = new Scanner(System.in);
+        try {
+            conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            System.out.println("Connected to MySQL Database.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addEmployee() {
+        try {
+            System.out.print("Enter name: ");
+            String name = sc.nextLine();
+            System.out.print("Enter role: ");
+            String role = sc.nextLine();
+            System.out.print("Enter salary: ");
+            double salary = sc.nextDouble();
+            sc.nextLine(); // consume newline
+
+            String query = "INSERT INTO employees (name, role, salary) VALUES (?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(query);
+            ps.setString(1, name);
+            ps.setString(2, role);
+            ps.setDouble(3, salary);
+            ps.executeUpdate();
+            System.out.println("Employee added.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void viewEmployees() {
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM employees");
+            System.out.println("ID\tName\tRole\tSalary");
+            while (rs.next()) {
+                System.out.println(rs.getInt("id") + "\t" +
+                                   rs.getString("name") + "\t" +
+                                   rs.getString("role") + "\t" +
+                                   rs.getDouble("salary"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateEmployee() {
+        try {
+            System.out.print("Enter employee ID to update: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+            System.out.print("Enter new role: ");
+            String role = sc.nextLine();
+            System.out.print("Enter new salary: ");
+            double salary = sc.nextDouble();
+            sc.nextLine();
+
+            String query = "UPDATE employees SET role = ?, salary = ? WHERE id = ?";
+            PreparedStatement ps = conn.prepareStatement(query);
+            ps.setString(1, role);
+            ps.setDouble(2, salary);
+            ps.setInt(3, id);
+            ps.executeUpdate();
+            System.out.println("Employee updated.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteEmployee() {
+        try {
+            System.out.print("Enter employee ID to delete: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+
+            String query = "DELETE FROM employees WHERE id = ?";
+            PreparedStatement ps = conn.prepareStatement(query);
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            System.out.println("Employee deleted.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void start() {
+        while (true) {
+            System.out.println("\n1. Add Employee");
+            System.out.println("2. View Employees");
+            System.out.println("3. Update Employee");
+            System.out.println("4. Delete Employee");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: addEmployee(); break;
+                case 2: viewEmployees(); break;
+                case 3: updateEmployee(); break;
+                case 4: deleteEmployee(); break;
+                case 5: System.exit(0);
+                default: System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        new EmployeeApp().start();
+    }
+}
